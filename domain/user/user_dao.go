@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"github.com/pgrau/bookstore-user-api/lib/date"
 	"github.com/pgrau/bookstore-user-api/lib/error"
 )
 
@@ -33,6 +34,8 @@ func (user *User) Save() *error.RestErr {
 
 		return error.Conflict(fmt.Sprintf("user %d aleardy exists", user.Id))
 	}
+
+	user.CreatedAt = date.GetNowString()
 
 	userDB[user.Id] = user
 
