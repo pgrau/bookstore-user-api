@@ -12,8 +12,24 @@ type RestErr struct {
 
 func BadRequest(message string)*RestErr {
 	return &RestErr{
-		Message: "invalid json body",
+		Message: message,
 		Status: http.StatusBadRequest,
 		Error: "bad_request",
+	}
+}
+
+func NotFound(message string)*RestErr {
+	return &RestErr{
+		Message: message,
+		Status: http.StatusNotFound,
+		Error: "not_found",
+	}
+}
+
+func Conflict(message string)*RestErr {
+	return &RestErr{
+		Message: message,
+		Status: http.StatusConflict,
+		Error: "conflict",
 	}
 }
