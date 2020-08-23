@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/pgrau/bookstore-user-api/lib/error"
+	"regexp"
 	"strings"
 )
 
@@ -14,10 +15,14 @@ type User struct {
 }
 
 func (user *User) Validate() *error.RestErr {
+	user.FirstName = strings.TrimSpace(user.FirstName)
+	user.LastName = strings.TrimSpace(user.LastName)
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 
-	if user.Email == "" {
-		return error.BadRequest("Inavalid email address")
+	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+	if !re.MatchString(user.Email) {
+		return error.BadRequest("Invalid email address")
 	}
 
 	return nil

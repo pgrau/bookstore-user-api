@@ -1,18 +1,17 @@
 package user
 
 import (
-	"fmt"
 	"github.com/pgrau/bookstore-user-api/datasource"
 	"github.com/pgrau/bookstore-user-api/lib/date"
 	"github.com/pgrau/bookstore-user-api/lib/error"
-	"strings"
+	"github.com/pgrau/bookstore-user-api/lib/mysql"
 )
 
 const(
-	indexUniqueEmail = "email_UNIQUE"
 	queryInsert = "INSERT INTO user(first_name, last_name, email, created_at) VALUES (?, ?, ?, ?);"
+	queryUpdate = "UPDATE user SET first_name = ?, last_name = ?, email = ? WHERE id = ?;"
+	queryDelete = "DELETE FROM user WHERE id = ?;"
 	queryGetById = "SELECT id, first_name, last_name, email, created_at FROM user WHERE id = ?;"
-	errorNoRows = "no rows in result set"
 )
 
 var(
@@ -29,11 +28,7 @@ func (user *User) Get() *error.RestErr {
 
 	result := stmt.QueryRow(user.Id)
 	if err := result.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.CreatedAt); err != nil {
-		if strings.Contains(err.Error(), errorNoRows) {
-			return error.NotFound(fmt.Sprintf("user %d not found", user.Id));
-		}
-
-		return error.InternalServerError(fmt.Sprintf("error when trying to get user %d: %s", user.Id, err.Error()))
+		return mysql.ParseError(err)
 	}
 
 	return nil
@@ -51,18 +46,47 @@ func (user *User) Save() *error.RestErr {
 
 	result, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.CreatedAt)
 	if err != nil {
-		if strings.Contains(err.Error(), indexUniqueEmail) {
-			return error.Conflict(fmt.Sprintf("email %s already exists", user.Email))
-		}
-		return error.InternalServerError(fmt.Sprintf("error when trying to save user: %s", err.Error()))
+		return mysql.ParseError(err)
 	}
 
 	userId, err := result.LastInsertId()
 	if err != nil {
-		return error.InternalServerError(fmt.Sprintf("error when trying to save user: %s", err.Error()))
+		return mysql.ParseError(err)
 	}
 
 	user.Id = userId
+
+	return nil
+}
+
+func (user *User) Update() *error.RestErr {
+	stmt, err := datasource.MysqlClient.Prepare(queryUpdate)
+	if err != nil {
+		return error.InternalServerError(err.Error())
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.Id)
+	if err != nil {
+		return mysql.ParseError(err)
+	}
+
+	return nil
+}
+
+func (user *User) Delete() *error.RestErr {
+	stmt, err := datasource.MysqlClient.Prepare(queryDelete)
+	if err != nil {
+		return error.InternalServerError(err.Error())
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(user.Id)
+	if err != nil {
+		return mysql.ParseError(err)
+	}
 
 	return nil
 }
