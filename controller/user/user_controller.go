@@ -93,3 +93,15 @@ func getUserId(userIdParam string)(int64, *error.RestErr) {
 
 	return userId, nil
 }
+
+func Search(c *gin.Context)  {
+	status := c.Query("status")
+
+	users, err := service.FindByStatus(status)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}

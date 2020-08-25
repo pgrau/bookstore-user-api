@@ -14,7 +14,13 @@ func GetUser(userId int64) (*user.User, *error.RestErr)  {
 	return result, nil
 }
 
+func FindByStatus(status string) ([]user.User, *error.RestErr)  {
+	dao := &user.User{}
+	return dao.FindByStatus(status)
+}
+
 func CreateUser(user user.User) (*user.User, *error.RestErr) {
+	user.DefaultValues()
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
@@ -22,7 +28,6 @@ func CreateUser(user user.User) (*user.User, *error.RestErr) {
 	if err := user.Save(); err != nil {
 		return nil, err
 	}
-
 	return &user, nil
 }
 

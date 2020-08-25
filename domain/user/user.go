@@ -1,9 +1,14 @@
 package user
 
 import (
+	"github.com/pgrau/bookstore-user-api/lib/date"
 	"github.com/pgrau/bookstore-user-api/lib/error"
 	"regexp"
 	"strings"
+)
+
+const (
+	StatusActive = "active"
 )
 
 type User struct {
@@ -11,6 +16,8 @@ type User struct {
 	FirstName 	string `json:"first_name"`
 	LastName 	string `json:"last_name"`
 	Email 		string `json:"email"`
+	Status 		string `json:"status"`
+	Password 	string `json:"password"`
 	CreatedAt 	string `json:"created_at"`
 }
 
@@ -24,6 +31,18 @@ func (user *User) Validate() *error.RestErr {
 	if !re.MatchString(user.Email) {
 		return error.BadRequest("Invalid email address")
 	}
+
+	user.Password = strings.TrimSpace(user.Password)
+	if user.Password == "" {
+		return error.BadRequest("Invalid password")
+	}
+
+	return nil
+}
+
+func (user *User) DefaultValues() *error.RestErr {
+	user.Status = StatusActive
+	user.CreatedAt = date.GetNowString();
 
 	return nil
 }
