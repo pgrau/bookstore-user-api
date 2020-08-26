@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/pgrau/bookstore-user-api/lib/crypto"
 	"github.com/pgrau/bookstore-user-api/lib/date"
 	"github.com/pgrau/bookstore-user-api/lib/error"
 	"regexp"
@@ -43,6 +44,7 @@ func (user *User) Validate() *error.RestErr {
 func (user *User) DefaultValues() *error.RestErr {
 	user.Status = StatusActive
 	user.CreatedAt = date.GetNowString();
+	user.Password = crypto.GetMd5(user.Password)
 
 	return nil
 }
