@@ -5,7 +5,22 @@ import (
 	"github.com/pgrau/bookstore-user-api/lib/error"
 )
 
-func GetUser(userId int64) (*user.User, *error.RestErr)  {
+var(
+	User userServiceInterface = &userService{}
+)
+
+type userService struct {
+}
+
+type userServiceInterface interface {
+	Get(int64) (*user.User, *error.RestErr)
+	FindByStatus(string) (user.Users, *error.RestErr)
+	Create(user.User) (*user.User, *error.RestErr)
+	Update(bool, user.User) (*user.User, *error.RestErr)
+	Delete(int64) *error.RestErr
+}
+
+func (s *userService) Get(userId int64) (*user.User, *error.RestErr)  {
 	result := &user.User{Id: userId}
 	if err := result.Get(); err != nil {
 		return nil, err
@@ -14,12 +29,12 @@ func GetUser(userId int64) (*user.User, *error.RestErr)  {
 	return result, nil
 }
 
-func FindByStatus(status string) ([]user.User, *error.RestErr)  {
+func (s *userService) FindByStatus(status string) (user.Users, *error.RestErr)  {
 	dao := &user.User{}
 	return dao.FindByStatus(status)
 }
 
-func CreateUser(user user.User) (*user.User, *error.RestErr) {
+func (s *userService) Create(user user.User) (*user.User, *error.RestErr) {
 	user.DefaultValues()
 	if err := user.Validate(); err != nil {
 		return nil, err
@@ -31,8 +46,8 @@ func CreateUser(user user.User) (*user.User, *error.RestErr) {
 	return &user, nil
 }
 
-func  UpdateUser(isPartial bool, user user.User) (*user.User, *error.RestErr) {
-	current, err := GetUser(user.Id)
+func (s *userService) Update(isPartial bool, user user.User) (*user.User, *error.RestErr) {
+	current, err := s.Get(user.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +82,7 @@ func  UpdateUser(isPartial bool, user user.User) (*user.User, *error.RestErr) {
 	return current, nil;
 }
 
-func DeleteUser(userId int64) *error.RestErr  {
+func (s *userService) Delete(userId int64) *error.RestErr  {
 	user := &user.User{Id: userId}
 
 	return user.Delete()

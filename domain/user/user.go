@@ -22,6 +22,8 @@ type User struct {
 	CreatedAt 	string `json:"created_at"`
 }
 
+type Users []User
+
 func (user *User) Validate() *error.RestErr {
 	user.FirstName = strings.TrimSpace(user.FirstName)
 	user.LastName = strings.TrimSpace(user.LastName)
