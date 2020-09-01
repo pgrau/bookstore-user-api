@@ -7,13 +7,13 @@ import (
 )
 
 const(
-	errorNoRows = "no rows in result set"
+	ErrorNoRows = "no rows in result set"
 )
 
 func ParseError(err error) *error_helper.RestErr {
 	sqlErr, ok := err.(*mysql.MySQLError)
 	if !ok {
-		if strings.Contains(err.Error(), errorNoRows) {
+		if strings.Contains(err.Error(), ErrorNoRows) {
 			return error_helper.NotFound("No record matching given id")
 		}
 		return error_helper.NotFound("No record matching given id")

@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/pgrau/bookstore-user-api/domain/user"
+	"github.com/pgrau/bookstore-user-api/lib/crypto"
 	"github.com/pgrau/bookstore-user-api/lib/error"
 )
 
@@ -18,6 +19,7 @@ type userServiceInterface interface {
 	Create(user.User) (*user.User, *error.RestErr)
 	Update(bool, user.User) (*user.User, *error.RestErr)
 	Delete(int64) *error.RestErr
+	Login(user.LoginRequest) (*user.User, *error.RestErr)
 }
 
 func (s *userService) Get(userId int64) (*user.User, *error.RestErr)  {
@@ -86,4 +88,15 @@ func (s *userService) Delete(userId int64) *error.RestErr  {
 	user := &user.User{Id: userId}
 
 	return user.Delete()
+}
+
+func (s *userService) Login(request user.LoginRequest) (*user.User, *error.RestErr) {
+	dao := &user.User{
+		Email:    request.Email,
+		Password: crypto.GetMd5(request.Password),
+	}
+	if err := dao.FindByEmailAndPassword(); err != nil {
+		return nil, err
+	}
+	return dao, nil
 }
