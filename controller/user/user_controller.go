@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pgrau/bookstore-client-go/oauth"
 	"github.com/pgrau/bookstore-user-api/domain/user"
 	"github.com/pgrau/bookstore-user-api/service"
 	"github.com/pgrau/bookstore-user-api/lib/error"
@@ -10,6 +11,21 @@ import (
 )
 
 func Get(c *gin.Context)  {
+	if err := oauth.AuthenticateRequest(c.Request); err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+
+	if callerId := oauth.GetCallerId(c.Request); callerId == 0 {
+		err := error.RestErr{
+			Status: http.StatusUnauthorized,
+			Message: "resource not available",
+		}
+
+		c.JSON(err.Status, err)
+		return
+	}
+
 	userId, idErr := getUserId(c.Param("user_id"))
 	if idErr != nil {
 		c.JSON(idErr.Status, idErr)
@@ -22,7 +38,12 @@ func Get(c *gin.Context)  {
 		return
 	}
 
-	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
+	if oauth.GetClientId(c.Request) == user.Id {
+		c.JSON(http.StatusOK, user.Marshall(false))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.Marshall(oauth.IsPublic(c.Request)))
 }
 
 func Create(c *gin.Context)  {
